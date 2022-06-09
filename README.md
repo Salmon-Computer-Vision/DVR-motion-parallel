@@ -38,13 +38,20 @@ mainly the command that would be used:
 dvr-scan -l 10 -i <path/to/video>
 ```
 
+Also, try the following as supposedly this background subtractor may be faster:
+```
+dvr-scan -l 10 -b CNT -i <path/to/video>
+```
+
 You can tweak the threshold a little to try to filter out non-desirable detections:
 ```
-dvr-scan -l 10 -t 0.25 -i <path/to/video>
+dvr-scan -l 10 -b CNT -t 0.25 -i <path/to/video>
 ```
 
 0.15 is the default threshold. A higher threshold would require more movement before
 a detection is triggered.
+
+This will output several motion detected `.avi` clips in the current folder.
 
 # DVR Motion Parallel
 
