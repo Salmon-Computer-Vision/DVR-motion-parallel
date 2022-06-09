@@ -1,9 +1,9 @@
-# DVR scan without parallel
+# DVR Scan Normal
 
-First before attempting the parallel version, try `dvr-scan` not in parallel.
+First before attempting the parallel version, try `dvr-scan` normally.
 
 ## Install
-On windows download and install Anaconda, whereas other systems can just use
+On windows, download and install [Anaconda](https://www.anaconda.com/), whereas other systems can just use
 python3 `pip`.
 
 On Windows, hit the Window key and search for "Anaconda Prompt" and open that
