@@ -46,7 +46,7 @@ For all systems. Simply install dvr-scan with pip:
 pip install dvr_scan[opencv]
 ```
 
-# Usage
+## Usage
 
 Check the help for the options:
 
