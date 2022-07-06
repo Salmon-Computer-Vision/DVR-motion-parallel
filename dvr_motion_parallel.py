@@ -6,10 +6,14 @@ import os
 import shutil
 import traceback
 import glob
+import re
+
+import multiprocessing as mp
 from multiprocessing import Pool
 
 from moviepy.video.io.ffmpeg_tools import ffmpeg_extract_subclip
 
+fps_rg = re.compile(r'[0-9]+.[0-9]+ frames/s')
 
 def run_all(args):
     args.number = args.jobs
@@ -45,38 +49,68 @@ def run_split(args):
     return
 
 
-class ScanParams:
+class Scan:
+    base_cmd = 'dvr-scan'
+    min_event_length = 10
     path = ''
-    start = '00:00:00'
-    end = '00:00:00'
+    thresh = 0.15
+    output_path = '.avi'
+    mog = True
 
-    def __init__(self, path, start, end):
+    cmd = []
+
+    def __init__(self, path, min_event_length, thresh, output_path, mog):
         self.path = path
-        self.start = start
-        self.end = end
+        self.min_event_length = min_event_length
+        self.thresh = thresh
+        self.output_path = output_path
+        self.mog = mog
 
+    def build_cmd(self):
+        self.cmd = [self.base_cmd]
+        self.cmd += ['-i', self.path]
+        self.cmd += ['-o', self.output_path]
+        self.cmd += ['-l', str(self.min_event_length)]
+        self.cmd += ['-t', str(self.thresh)]
+
+        if not self.mog:
+            self.cmd += ['-b', 'CNT']
+
+    def run(self):
+        p = subprocess.Popen(self.cmd, 
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                universal_newlines=True)
+        out, err = p.communicate()
+        return (out, err)
+
+def scan_run_job(scan):
+    print("Start:", scan.path)
+    out, err = scan.run()
+    print(out)
+    print(fps_rg.findall(err)[-1]) # Print out the last fps
+    print("Finish:", scan.path)
 
 def run_parallel_scan(args):
-    def run_dvr_scan(params):
-        subprocess.run(['dvr-scan', '-l', 10, '-st', params.start, '-et', params.end,
-            '-t', args.threshold, params.path])
+    job_pool = Pool(int(args.jobs))
 
-    os.makedirs(args.output)
+    scan_instances = []
+    for vid in glob.glob(os.path.join(args.src_folder, '**', '*.*'), recursive=True):
+        input_dir = os.path.dirname(vid)
+        output_dir = os.path.join(args.output, os.path.relpath(input_dir, args.src_folder))
+        os.makedirs(output_dir, exist_ok=True)
+        name = os.path.splitext(os.path.basename(vid))[0]
+        output_path = os.path.join(output_dir, f"{name}.avi")
 
-    job_pool = Pool(args.jobs)
+        scan = Scan(path=vid, 
+            min_event_length=args.min_event_length, thresh=args.thresh, 
+            output_path=output_path, mog=args.mog)
+        scan.build_cmd()
+        scan_instances.append(scan)
 
-    all_params = []
-    for vid in glob.glob(f"{args.src_folder}/*"):
-        all_params.append(ScanParams(path=vid, 
-
-    job_pool.map(run_dvr_scan, all_params))
+    job_pool.map(scan_run_job, scan_instances)
 
     job_pool.close()
     job_pool.join()
-
-    for vid in glob.glob('*.avi'):
-        print(vid)
-        shutil.copy(vid, args.output)
 
     return
 
@@ -87,7 +121,7 @@ def subcommands(parser):
     all_parser = subp.add_parser('all', help='Run all processing and output motion clips. Will require at most 3 times as much disk space.')
     all_parser.set_defaults(func=run_all)
     all_parser.add_argument('src_video', help='Source video to preprocess.')
-    all_parser.add_argument('-j', '--jobs', default=8, help='Number of parallel jobs at once. Ideally no more than double your CPU cores.')
+    all_parser.add_argument('-j', '--jobs', default=4, help='Number of parallel jobs at once. Ideally no more than your vCPU cores.')
     all_parser.add_argument('-o', '--output', default='motion_detected_clips', help='Output folder of the motion detected video clips.')
 
     split_parser = subp.add_parser('split', help='Only split the video into equally sized clips. Don\'t split too much otherwise the desired detected object may also be split.')
@@ -101,6 +135,7 @@ def subcommands(parser):
     scan_parser.add_argument('src_folder', help='Source folder of video clips to preprocess.')
     scan_parser.add_argument('-j', '--jobs', default=4, help='Number of parallel jobs at once. Ideally no more than double your CPU cores.')
     scan_parser.add_argument('-o', '--output', default='motion_detected_clips', help='Output folder of the motion detected video clips.')
+    scan_parser.add_argument('-l', '--min_event_length', default=3, help='Min required number of frames to trigger. See more in `dvr-scan -h`. Default is 3.')
 
 
 if __name__ == '__main__':
@@ -108,11 +143,12 @@ if __name__ == '__main__':
 
     parser.set_defaults(func=run_parallel_scan)
 
-    parser.add_argument('src_video', help='Source video to run motion detection on.')
-    parser.add_argument('-j', '--jobs', default=4, help='Number of parallel jobs at once. Ideally no more than double your CPU cores.')
-    parser.add_argument('-o', '--output', default='motion_detected_clips', help='Output folder of the motion detected video clips.')
-    parser.add_argument('-t', '--threshold', default=0.15, help='Motion threshold value. See more in `dvr-scan -h`')
-    parser.add_argument('-j', '--jobs', default=4, help='Number of parallel jobs at once. Ideally no more than double your CPU cores.')
+    parser.add_argument('src_folder', help='Source folder to recursively find videos on.')
+    parser.add_argument('-j', '--jobs', default=mp.cpu_count(), help='Number of parallel jobs at once. Default is your number of CPU cores.')
+    parser.add_argument('-o', '--output', default='motion_detected_clips', help='Output folder for the motion detected video clips. Will recreate the source folder hierarchy.')
+    parser.add_argument('-t', '--thresh', default=0.15, help='Motion threshold value. See more in `dvr-scan -h`. Default is 0.15')
+    parser.add_argument('-l', '--min_event_length', default=3, help='Min required number of frames to trigger. See more in `dvr-scan -h`. Default is 3.')
+    parser.add_argument('-m', '--mog', action='store_true', help='Use slower MOG background subtraction. See more in `dvr-scan -h`.')
 
     args = parser.parse_args()
     try:

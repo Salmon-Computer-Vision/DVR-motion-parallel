@@ -1,8 +1,16 @@
-# DVR Scan Normal
+# DVR Motion Parallel
 
-First before attempting the parallel version, try `dvr-scan` normally.
+Python >= 3.5
+
+Parallel motion detection by simply running a motion detection tool
+over multiple videos at the same time.
+
+The script will by default parallelize up to your machine's CPU cores and
+output a compilation video of all the motion detected
+events per video recursively in the supplied folder.
 
 ## Install
+
 On windows, download and install [Anaconda](https://www.anaconda.com/), whereas other systems can just use
 python3 `pip`.
 
@@ -29,7 +37,27 @@ For all systems. Simply install dvr-scan with pip:
 pip install dvr_scan[opencv]
 ```
 
-## Usage
+# Usage
+
+Check the help for the options:
+
+```
+python dvr_motion_parallel.py --help
+```
+
+Run with all defaults:
+
+```
+python dvr_motion_parallel.py path/to/videos/folder
+```
+
+You may want to specify a different output folder:
+
+```
+python dvr_motion_parallel.py path/to/videos/folder -o path/to/output/folder
+```
+
+# DVR-Scan Normal Usage
 
 You can check all the options with `dvr-scan -h`, but the following should be
 mainly the command that would be used:
@@ -53,12 +81,9 @@ a detection is triggered.
 
 This will output several motion detected `.avi` clips in the current folder.
 
-# DVR Motion Parallel
+# Deprecated
 
-Pseudo parallel motion detection by simply running a motion detection tool
-over multiple videos at the same time.
-
-# Choose split points
+## Choose split points
 
 Best way is to **manually** choose 4 or more clip intervals in the long video
 that allows each clip to be more or less equally sized without splitting
