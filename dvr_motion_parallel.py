@@ -147,7 +147,7 @@ if __name__ == '__main__':
     parser.add_argument('src_folder', help='Source folder to recursively find videos on.')
     parser.add_argument('-j', '--jobs', default=mp.cpu_count(), help='Number of parallel jobs at once. Default is your number of CPU cores.')
     parser.add_argument('-o', '--output', default='motion_detected_clips', help='Output folder for the motion detected video clips. Will recreate the source folder hierarchy.')
-    parser.add_argument('-t', '--thresh', default=0.15, help='Motion threshold value. See more in `dvr-scan -h`. Default is 0.15')
+    parser.add_argument('-t', '--thresh', default=0.3, help='Motion threshold value. See more in `dvr-scan -h`. Default is 0.3')
     parser.add_argument('-l', '--min-event-length', default=3, help='Min required number of frames to trigger. See more in `dvr-scan -h`. Default is 3.')
     parser.add_argument('-m', '--mog', action='store_true', help='Use slower MOG background subtraction. See more in `dvr-scan -h`.')
     parser.add_argument('-tp', '--time-post-event', default='3s', help='Num of frames to include after motion (Can use seconds, too). See more in `dvr-scan -h`. 3 sec')
