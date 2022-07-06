@@ -61,7 +61,7 @@ class Scan:
         self.thresh = args.thresh
         self.mog = args.mog
         self.time_post = args.time_post_event
-        self.time_after = args.time_after_event
+        self.time_before = args.time_before_event
         self.time_code = args.time_code
 
     def build_cmd(self):
@@ -70,8 +70,8 @@ class Scan:
         self.cmd += ['-o', self.output_path]
         self.cmd += ['-l', str(self.min_event_length)]
         self.cmd += ['-t', str(self.thresh)]
-        self.cmd += ['-tb', self.time_post]
-        self.cmd += ['-tp', self.time_after]
+        self.cmd += ['-tb', self.time_before]
+        self.cmd += ['-tp', self.time_post]
 
         if not self.mog:
             self.cmd += ['-b', 'CNT']
