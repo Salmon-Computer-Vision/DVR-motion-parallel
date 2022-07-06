@@ -51,20 +51,18 @@ def run_split(args):
 
 class Scan:
     base_cmd = 'dvr-scan'
-    min_event_length = 10
-    path = ''
-    thresh = 0.15
-    output_path = '.avi'
-    mog = True
-
     cmd = []
 
-    def __init__(self, path, min_event_length, thresh, output_path, mog):
+    def __init__(self, path, output_path, args):
         self.path = path
-        self.min_event_length = min_event_length
-        self.thresh = thresh
         self.output_path = output_path
-        self.mog = mog
+
+        self.min_event_length = args.min_event_length
+        self.thresh = args.thresh
+        self.mog = args.mog
+        self.time_post = args.time_post_event
+        self.time_after = args.time_after_event
+        self.time_code = args.time_code
 
     def build_cmd(self):
         self.cmd = [self.base_cmd]
@@ -72,9 +70,14 @@ class Scan:
         self.cmd += ['-o', self.output_path]
         self.cmd += ['-l', str(self.min_event_length)]
         self.cmd += ['-t', str(self.thresh)]
+        self.cmd += ['-tb', self.time_post]
+        self.cmd += ['-tp', self.time_after]
 
         if not self.mog:
             self.cmd += ['-b', 'CNT']
+
+        if self.time_code:
+            self.cmd += ['-tc']
 
     def run(self):
         p = subprocess.Popen(self.cmd, 
@@ -101,9 +104,7 @@ def run_parallel_scan(args):
         name = os.path.splitext(os.path.basename(vid))[0]
         output_path = os.path.join(output_dir, f"{name}.avi")
 
-        scan = Scan(path=vid, 
-            min_event_length=args.min_event_length, thresh=args.thresh, 
-            output_path=output_path, mog=args.mog)
+        scan = Scan(path=vid, output_path=output_path, args=args)
         scan.build_cmd()
         scan_instances.append(scan)
 
@@ -147,8 +148,11 @@ if __name__ == '__main__':
     parser.add_argument('-j', '--jobs', default=mp.cpu_count(), help='Number of parallel jobs at once. Default is your number of CPU cores.')
     parser.add_argument('-o', '--output', default='motion_detected_clips', help='Output folder for the motion detected video clips. Will recreate the source folder hierarchy.')
     parser.add_argument('-t', '--thresh', default=0.15, help='Motion threshold value. See more in `dvr-scan -h`. Default is 0.15')
-    parser.add_argument('-l', '--min_event_length', default=3, help='Min required number of frames to trigger. See more in `dvr-scan -h`. Default is 3.')
+    parser.add_argument('-l', '--min-event-length', default=3, help='Min required number of frames to trigger. See more in `dvr-scan -h`. Default is 3.')
     parser.add_argument('-m', '--mog', action='store_true', help='Use slower MOG background subtraction. See more in `dvr-scan -h`.')
+    parser.add_argument('-tp', '--time-post-event', default='3s', help='Num of frames to include after motion (Can use seconds, too). See more in `dvr-scan -h`. 3 sec')
+    parser.add_argument('-tb', '--time-before-event', default='3s', help='Num of frames to include before motion (Can use seconds, too). See more in `dvr-scan -h`. Default 3 sec')
+    parser.add_argument('-tc', '--time-code', action='store_true', help='Draw time code of each frame in top left corner. See more in `dvr-scan -h`.')
 
     args = parser.parse_args()
     try:
