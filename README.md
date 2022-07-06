@@ -6,7 +6,7 @@ Parallel motion detection by simply running a motion detection tool
 over multiple videos at the same time.
 
 The script will by default parallelize up to your machine's CPU cores and
-output a compilation video of all the motion detected
+output separate compilation videos of all the motion detected
 events per video recursively in the supplied folder.
 
 ## Install
