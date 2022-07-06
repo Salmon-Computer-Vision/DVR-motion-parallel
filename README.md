@@ -11,18 +11,20 @@ events per video recursively in the supplied folder.
 
 ## Install
 
-On windows, download and install [Anaconda](https://www.anaconda.com/), whereas other systems can just use
-python3 `pip`.
+### Windows
 
-On Windows, hit the Window key and search for "Anaconda Prompt" and open that
-terminal.
+Download and install [Miniconda](https://docs.conda.io/en/latest/miniconda.html) or [Anaconda](https://www.anaconda.com/).
 
-Run the following to create a new environment:
+Miniconda is a more lite version without the extra GUI applications.
+
+Hit the Windows key and search for "Anaconda Prompt" and open it. A terminal prompt will appear.
+
+Enter the following to create a new environment:
 ```
 conda create --name dvr-motion 
 ```
 
-Run the following to activate the environment (You must do this everytime you close the terminal):
+Enter the following to activate the environment (You must do this everytime you close the terminal):
 ```
 conda activate dvr-motion
 ```
@@ -31,6 +33,13 @@ Install pip:
 ```
 conda install pip
 ```
+
+Install dvr-scan:
+```
+pip install dvr_scan[opencv]
+```
+
+### Other systems
 
 For all systems. Simply install dvr-scan with pip:
 ```
