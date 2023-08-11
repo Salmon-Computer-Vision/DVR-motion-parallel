@@ -11,3 +11,7 @@ python_version = "3.8"
 [packages]
 dvr-scan = "*"
 moviepy = "*"
+wheel = "*"
+setuptools = "*"
+pip = "*"
+certifi = "*"
