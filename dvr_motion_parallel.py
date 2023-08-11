@@ -103,6 +103,9 @@ def run_parallel_scan(args):
     for vid in glob.glob(os.path.join(args.src_folder, '**', '*.mp4'), recursive=True):
         input_dir = os.path.dirname(vid)
         output_dir = os.path.join(args.output, os.path.relpath(input_dir, args.src_folder))
+        if os.path.exists(output_dir):
+            continue
+
         os.makedirs(output_dir, exist_ok=True)
         name = os.path.splitext(os.path.basename(vid))[0]
         output_path = os.path.join(output_dir, f"{name}.avi")
