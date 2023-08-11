@@ -90,14 +90,17 @@ def scan_run_job(scan):
     print("Start:", scan.path)
     out, err = scan.run()
     print(out)
-    print(fps_rg.findall(err)[-1]) # Print out the last fps
+    try:
+        print(fps_rg.findall(err)[-1]) # Print out the last fps
+    except:
+        print("Error trying to print out FPS")
     print("Finish:", scan.path)
 
 def run_parallel_scan(args):
     job_pool = Pool(int(args.jobs))
 
     scan_instances = []
-    for vid in glob.glob(os.path.join(args.src_folder, '**', '*.*'), recursive=True):
+    for vid in glob.glob(os.path.join(args.src_folder, '**', '*.mp4'), recursive=True):
         input_dir = os.path.dirname(vid)
         output_dir = os.path.join(args.output, os.path.relpath(input_dir, args.src_folder))
         os.makedirs(output_dir, exist_ok=True)
