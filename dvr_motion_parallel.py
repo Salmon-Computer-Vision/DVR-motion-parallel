@@ -74,7 +74,7 @@ class Scan:
         self.cmd += ['-tp', self.time_post]
 
         if not self.mog:
-            self.cmd += ['-b', 'MOG2_CUDA']
+            self.cmd += ['-b', 'CNT']
 
         if self.time_code:
             self.cmd += ['-tc']
@@ -103,7 +103,7 @@ def run_parallel_scan(args):
     for vid in glob.glob(os.path.join(args.src_folder, '**', '*.mp4'), recursive=True):
         input_dir = os.path.dirname(vid)
         output_dir = os.path.join(args.output, os.path.relpath(input_dir, args.src_folder))
-        if os.listdir(output_dir):
+        if os.path.exists(output_dir) and os.listdir(output_dir):
             continue
 
         os.makedirs(output_dir, exist_ok=True)
