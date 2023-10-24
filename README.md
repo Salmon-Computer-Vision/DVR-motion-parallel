@@ -66,6 +66,8 @@ You may want to specify a different output folder:
 python dvr_motion_parallel.py path/to/videos/folder -o path/to/output/folder
 ```
 
+Change the configs inside the `dvr-scan.cfg` file.
+
 # DVR-Scan Normal Usage
 
 You can check all the options with `dvr-scan -h`, but the following should be

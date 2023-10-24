@@ -57,27 +57,16 @@ class Scan:
         self.path = path
         self.output_path = output_path
 
-        self.min_event_length = args.min_event_length
-        self.thresh = args.thresh
-        self.mog = args.mog
-        self.time_post = args.time_post_event
-        self.time_before = args.time_before_event
-        self.time_code = args.time_code
+        self.args = args
 
     def build_cmd(self):
         self.cmd = [self.base_cmd]
         self.cmd += ['-i', self.path]
-        self.cmd += ['-o', self.output_path]
-        self.cmd += ['-l', str(self.min_event_length)]
-        self.cmd += ['-t', str(self.thresh)]
-        self.cmd += ['-tb', self.time_before]
-        self.cmd += ['-tp', self.time_post]
-
-        if not self.mog:
-            self.cmd += ['-b', 'CNT']
-
-        if self.time_code:
-            self.cmd += ['-tc']
+        self.cmd += ['-c', self.args.config]
+        if not self.args.combine:
+            self.cmd += ['-d', self.output_path]
+        else:
+            self.cmd += ['-o', self.output_path]
 
     def run(self):
         p = subprocess.Popen(self.cmd, 
@@ -108,7 +97,7 @@ def run_parallel_scan(args):
 
         os.makedirs(output_dir, exist_ok=True)
         name = os.path.splitext(os.path.basename(vid))[0]
-        output_path = os.path.join(output_dir, f"{name}.avi")
+        output_path = os.path.join(output_dir, f"{name}")
 
         scan = Scan(path=vid, output_path=output_path, args=args)
         scan.build_cmd()
@@ -140,7 +129,7 @@ def subcommands(parser):
     scan_parser = subp.add_parser('scan', help='Scans and creates motion detected clips in parallel of all videos in a folder.')
     scan_parser.set_defaults(func=run_parallel_scan)
     scan_parser.add_argument('src_folder', help='Source folder of video clips to preprocess.')
-    scan_parser.add_argument('-j', '--jobs', default=4, help='Number of parallel jobs at once. Ideally no more than double your CPU cores.')
+    scan_parser.add_argument('-j', '--jobs', default=4, help='Number of parallel jobs at once. Ideally no more than your CPU cores.')
     scan_parser.add_argument('-o', '--output', default='motion_detected_clips', help='Output folder of the motion detected video clips.')
     scan_parser.add_argument('-l', '--min_event_length', default=3, help='Min required number of frames to trigger. See more in `dvr-scan -h`. Default is 3.')
 
@@ -151,14 +140,10 @@ if __name__ == '__main__':
     parser.set_defaults(func=run_parallel_scan)
 
     parser.add_argument('src_folder', help='Source folder to recursively find videos on.')
-    parser.add_argument('-j', '--jobs', default=mp.cpu_count(), help='Number of parallel jobs at once. Default is your number of CPU cores.')
+    parser.add_argument('-j', '--jobs', default=4, help='Number of parallel jobs at once. Default is 4. CNT algorithm already runs in parallel, so many parallel jobs are unnecessary.')
     parser.add_argument('-o', '--output', default='motion_detected_clips', help='Output folder for the motion detected video clips. Will recreate the source folder hierarchy.')
-    parser.add_argument('-t', '--thresh', default=0.3, help='Motion threshold value. See more in `dvr-scan -h`. Default is 0.3')
-    parser.add_argument('-l', '--min-event-length', default=3, help='Min required number of frames to trigger. See more in `dvr-scan -h`. Default is 3.')
-    parser.add_argument('-m', '--mog', action='store_true', help='Use slower MOG background subtraction. See more in `dvr-scan -h`.')
-    parser.add_argument('-tp', '--time-post-event', default='3s', help='Num of frames to include after motion (Can use seconds, too). See more in `dvr-scan -h`. 3 sec')
-    parser.add_argument('-tb', '--time-before-event', default='3s', help='Num of frames to include before motion (Can use seconds, too). See more in `dvr-scan -h`. Default 3 sec')
-    parser.add_argument('-tc', '--time-code', action='store_true', help='Draw time code of each frame in top left corner. See more in `dvr-scan -h`.')
+    parser.add_argument('--combine', action='store_true', help='Concatenate detections into one video for each input video.')
+    parser.add_argument('-c', '--config', default='dvr-scan.cfg', help='Config file location for dvr-scan. Uses dvr-scan.cfg in current directory otherwise.')
 
     args = parser.parse_args()
     try:
