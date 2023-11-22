@@ -87,9 +87,15 @@ def scan_run_job(scan):
 
 def run_parallel_scan(args):
     job_pool = Pool(int(args.jobs))
+    vid_exts = ['*.mp4', '*.m4v']
+
+    vid_files = []
+    for ext in vid_exts:
+        cmb_path = os.path.join(args.src_folder, '**', ext)
+        vid_files.extend(glob.glob(cmb_path, recursive=True))
 
     scan_instances = []
-    for vid in glob.glob(os.path.join(args.src_folder, '**', '*.mp4'), recursive=True):
+    for vid in vid_files:
         input_dir = os.path.dirname(vid)
         output_dir = os.path.join(args.output, os.path.relpath(input_dir, args.src_folder))
         if os.path.exists(output_dir) and os.listdir(output_dir):
